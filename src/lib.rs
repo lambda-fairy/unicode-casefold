@@ -101,9 +101,9 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     /// Returns an iterator over the case folded characters of `self`.
     ///
     /// This is a convenient shorthand for
-    /// `.case_fold_with_options(Variant::Full, Locale::NonTurkic)`.
-    fn case_fold(self) -> CaseFold<I> {
-        self.case_fold_with_options(Default::default(), Default::default())
+    /// `.case_fold(Variant::Full, Locale::NonTurkic)`.
+    fn case_fold_default(self) -> CaseFold<I> {
+        self.case_fold(Default::default(), Default::default())
     }
 
     /// Returns an iterator over the case folded characters of `self`.
@@ -124,11 +124,11 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     ///
     /// * `Locale::Turkic`, which maps `I` to `ı` (dotless i), as is the case
     ///   in Turkic languages.
-    fn case_fold_with_options(self, Variant, Locale) -> CaseFold<I>;
+    fn case_fold(self, Variant, Locale) -> CaseFold<I>;
 }
 
 impl<I: Iterator<Item=char>> UnicodeCaseFold<I> for I {
-    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<I> {
+    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<I> {
         CaseFold {
             inner: self,
             buffer: Buffer::Zero,
@@ -139,7 +139,7 @@ impl<I: Iterator<Item=char>> UnicodeCaseFold<I> for I {
 }
 
 impl<'a> UnicodeCaseFold<Chars<'a>> for &'a str {
-    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<Chars<'a>> {
+    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<Chars<'a>> {
         CaseFold {
             inner: self.chars(),
             buffer: Buffer::Zero,
@@ -150,7 +150,7 @@ impl<'a> UnicodeCaseFold<Chars<'a>> for &'a str {
 }
 
 impl UnicodeCaseFold<Once<char>> for char {
-    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<Once<char>> {
+    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<Once<char>> {
         CaseFold {
             inner: iter::once(self),
             buffer: Buffer::Zero,
@@ -166,22 +166,22 @@ mod test {
 
     #[test]
     fn simple() {
-        assert_eq!("".case_fold().collect::<String>(), "");
-        assert_eq!("AaBbCcDdEe".case_fold().collect::<String>(), "aabbccddee");
+        assert_eq!("".case_fold_default().collect::<String>(), "");
+        assert_eq!("AaBbCcDdEe".case_fold_default().collect::<String>(), "aabbccddee");
     }
 
     #[test]
     fn turkic() {
-        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Full, Locale::NonTurkic).collect::<String>(), "i\u{131}i\u{307}i");
-        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Simple, Locale::NonTurkic).collect::<String>(), "i\u{131}\u{130}i");
-        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Full, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
-        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Simple, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Full, Locale::NonTurkic).collect::<String>(), "i\u{131}i\u{307}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Simple, Locale::NonTurkic).collect::<String>(), "i\u{131}\u{130}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Full, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Simple, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
     }
 
     #[test]
     fn no_case() {
         for &s in &["西遊記", "((!))", "サーナイト"] {
-            assert_eq!(s.case_fold().collect::<String>(), s);
+            assert_eq!(s.case_fold_default().collect::<String>(), s);
         }
     }
 }
