@@ -5,6 +5,9 @@
 ///
 /// [1]: https://www.w3.org/International/wiki/Case_folding
 
+use std::iter::{self, Once};
+use std::str::Chars;
+
 mod tables;
 use tables::{Buffer, COMMON_TABLE, FULL_TABLE, SIMPLE_TABLE};
 
@@ -34,8 +37,8 @@ impl Default for Variant {
 pub struct CaseFold<I> {
     inner: I,
     buffer: Buffer,
-    locale: Locale,
     variant: Variant,
+    locale: Locale,
 }
 
 impl<I: Iterator<Item=char>> CaseFold<I> {
@@ -90,5 +93,69 @@ impl<I: Iterator<Item=char>> Iterator for CaseFold<I> {
             Variant::Full => 3 * hi,
             Variant::Simple => hi,
         }))
+    }
+}
+
+/// Methods for case folding text.
+pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
+    /// Returns an iterator over the case folded characters of `self`.
+    ///
+    /// This is a convenient shorthand for
+    /// `.case_fold_with_options(Variant::Full, Locale::NonTurkic)`.
+    fn case_fold(self) -> CaseFold<I> {
+        self.case_fold_with_options(Default::default(), Default::default())
+    }
+
+    /// Returns an iterator over the case folded characters of `self`.
+    ///
+    /// `Variant` can be either:
+    ///
+    /// * `Variant::Full` (recommended), which may expand to a longer string.
+    ///   For example, the full case folded version of `ß` (one character) is
+    ///   `ss` (two characters).
+    ///
+    /// * `Variant::Simple`, a simpler variant which always expands to a string
+    ///   with the same number of characters. This is more efficient, but less
+    ///   complete.
+    ///
+    /// `Locale` can be either:
+    ///
+    /// * `Locale::NonTurkic` (default), which maps `I` to `i`.
+    ///
+    /// * `Locale::Turkic`, which maps `I` to `ı` (dotless i), as is the case
+    ///   in Turkic languages.
+    fn case_fold_with_options(self, Variant, Locale) -> CaseFold<I>;
+}
+
+impl<I: Iterator<Item=char>> UnicodeCaseFold<I> for I {
+    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<I> {
+        CaseFold {
+            inner: self,
+            buffer: Buffer::Zero,
+            variant: variant,
+            locale: locale,
+        }
+    }
+}
+
+impl<'a> UnicodeCaseFold<Chars<'a>> for &'a str {
+    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<Chars<'a>> {
+        CaseFold {
+            inner: self.chars(),
+            buffer: Buffer::Zero,
+            variant: variant,
+            locale: locale,
+        }
+    }
+}
+
+impl UnicodeCaseFold<Once<char>> for char {
+    fn case_fold_with_options(self, variant: Variant, locale: Locale) -> CaseFold<Once<char>> {
+        CaseFold {
+            inner: iter::once(self),
+            buffer: Buffer::Zero,
+            variant: variant,
+            locale: locale,
+        }
     }
 }
