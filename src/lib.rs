@@ -33,6 +33,7 @@ impl Default for Variant {
     fn default() -> Variant { Variant::Full }
 }
 
+/// An iterator over case folded characters.
 #[derive(Copy, Clone, Debug)]
 pub struct CaseFold<I> {
     inner: I,
@@ -102,13 +103,23 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     ///
     /// This is a convenient shorthand for
     /// `.case_fold(Variant::Full, Locale::NonTurkic)`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use unicode_casefold::{Locale, Variant, UnicodeCaseFold};
+    /// let s = "Alan Turing".case_fold_default().collect::<String>();
+    /// assert_eq!(s, "alan turing");
+    /// ```
     fn case_fold_default(self) -> CaseFold<I> {
         self.case_fold(Default::default(), Default::default())
     }
 
     /// Returns an iterator over the case folded characters of `self`.
     ///
-    /// `Variant` can be either:
+    /// # Parameters
+    ///
+    /// The `Variant` can be either:
     ///
     /// * `Variant::Full` (recommended), which may expand to a longer string.
     ///   For example, the full case folded version of `ß` (one character) is
@@ -118,12 +129,23 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     ///   with the same number of characters. This is more efficient, but less
     ///   complete.
     ///
-    /// `Locale` can be either:
+    /// The `Locale` can be either:
     ///
     /// * `Locale::NonTurkic` (default), which maps `I` to `i`.
     ///
     /// * `Locale::Turkic`, which maps `I` to `ı` (dotless i), as is the case
     ///   in Turkic languages.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use unicode_casefold::{Locale, Variant, UnicodeCaseFold};
+    /// let name = "Inigo Montoya";
+    /// let turkic = name.case_fold(Variant::Full, Locale::Turkic).collect::<String>();
+    /// let non_turkic = name.case_fold(Variant::Full, Locale::NonTurkic).collect::<String>();
+    /// assert_eq!(turkic, "ınigo montoya");  // note the dotless i
+    /// assert_eq!(non_turkic, "inigo montoya");
+    /// ```
     fn case_fold(self, Variant, Locale) -> CaseFold<I>;
 }
 
