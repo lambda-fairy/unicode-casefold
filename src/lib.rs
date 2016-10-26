@@ -159,3 +159,29 @@ impl UnicodeCaseFold<Once<char>> for char {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use {Locale, Variant, UnicodeCaseFold};
+
+    #[test]
+    fn simple() {
+        assert_eq!("".case_fold().collect::<String>(), "");
+        assert_eq!("AaBbCcDdEe".case_fold().collect::<String>(), "aabbccddee");
+    }
+
+    #[test]
+    fn turkic() {
+        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Full, Locale::NonTurkic).collect::<String>(), "i\u{131}i\u{307}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Simple, Locale::NonTurkic).collect::<String>(), "i\u{131}\u{130}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Full, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with_options(Variant::Simple, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+    }
+
+    #[test]
+    fn no_case() {
+        for &s in &["西遊記", "((!))", "サーナイト"] {
+            assert_eq!(s.case_fold().collect::<String>(), s);
+        }
+    }
+}
