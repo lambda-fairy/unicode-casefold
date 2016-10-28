@@ -213,4 +213,12 @@ mod test {
             assert_eq!(s.case_fold().collect::<String>(), s);
         }
     }
+
+    #[test]
+    fn size_hint() {
+        let mut ss = vec!['ß'].into_iter().case_fold();
+        assert_eq!(ss.size_hint(), (1, Some(3)));
+        ss.next();
+        assert_eq!(ss.size_hint(), (1, Some(1)));
+    }
 }
