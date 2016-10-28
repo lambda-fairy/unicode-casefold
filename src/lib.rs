@@ -89,11 +89,18 @@ impl<I: Iterator<Item=char>> Iterator for CaseFold<I> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
+        let extra = match self.buffer {
+            Buffer::Zero => 0,
+            Buffer::One(..) => 1,
+            Buffer::Two(..) => 2,
+        };
         let (lo, hi) = self.inner.size_hint();
-        (lo, hi.map(|hi| match self.variant {
-            Variant::Full => 3 * hi,
-            Variant::Simple => hi,
-        }))
+        let lo = lo.saturating_add(extra);
+        let hi = hi.and_then(|hi| match self.variant {
+            Variant::Full => hi.checked_mul(3),
+            Variant::Simple => Some(hi),
+        }).and_then(|hi| hi.checked_add(extra));
+        (lo, hi)
     }
 }
 

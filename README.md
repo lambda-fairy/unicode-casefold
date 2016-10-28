@@ -9,7 +9,7 @@ See [this W3C article][1] for how case folding differs from `.to_lowercase()`.
 
 ## Updating the Unicode data tables
 
-The tables used by this library are generated automatically from official Unicode Consortium data. To update them, run the following commands:
+The tables used by this library are generated from official Unicode Consortium data. To update them, run the following commands:
 
 ```sh
 curl -O http://www.unicode.org/Public/UNIDATA/CaseFolding.txt
