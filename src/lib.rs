@@ -115,11 +115,11 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     ///
     /// ```rust
     /// # use unicode_casefold::{Locale, Variant, UnicodeCaseFold};
-    /// let s = "Alan Turing".case_fold_default().collect::<String>();
+    /// let s = "Alan Turing".case_fold().collect::<String>();
     /// assert_eq!(s, "alan turing");
     /// ```
-    fn case_fold_default(self) -> CaseFold<I> {
-        self.case_fold(Default::default(), Default::default())
+    fn case_fold(self) -> CaseFold<I> {
+        self.case_fold_with(Default::default(), Default::default())
     }
 
     /// Returns an iterator over the case folded characters of `self`.
@@ -148,16 +148,16 @@ pub trait UnicodeCaseFold<I: Iterator<Item=char>>: Sized {
     /// ```rust
     /// # use unicode_casefold::{Locale, Variant, UnicodeCaseFold};
     /// let name = "Inigo Montoya";
-    /// let turkic = name.case_fold(Variant::Full, Locale::Turkic).collect::<String>();
-    /// let non_turkic = name.case_fold(Variant::Full, Locale::NonTurkic).collect::<String>();
+    /// let turkic = name.case_fold_with(Variant::Full, Locale::Turkic).collect::<String>();
+    /// let non_turkic = name.case_fold_with(Variant::Full, Locale::NonTurkic).collect::<String>();
     /// assert_eq!(turkic, "ınigo montoya");  // note the dotless i
     /// assert_eq!(non_turkic, "inigo montoya");
     /// ```
-    fn case_fold(self, Variant, Locale) -> CaseFold<I>;
+    fn case_fold_with(self, Variant, Locale) -> CaseFold<I>;
 }
 
 impl<I: Iterator<Item=char>> UnicodeCaseFold<I> for I {
-    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<I> {
+    fn case_fold_with(self, variant: Variant, locale: Locale) -> CaseFold<I> {
         CaseFold {
             inner: self,
             buffer: Buffer::Zero,
@@ -168,7 +168,7 @@ impl<I: Iterator<Item=char>> UnicodeCaseFold<I> for I {
 }
 
 impl<'a> UnicodeCaseFold<Chars<'a>> for &'a str {
-    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<Chars<'a>> {
+    fn case_fold_with(self, variant: Variant, locale: Locale) -> CaseFold<Chars<'a>> {
         CaseFold {
             inner: self.chars(),
             buffer: Buffer::Zero,
@@ -179,7 +179,7 @@ impl<'a> UnicodeCaseFold<Chars<'a>> for &'a str {
 }
 
 impl UnicodeCaseFold<Once<char>> for char {
-    fn case_fold(self, variant: Variant, locale: Locale) -> CaseFold<Once<char>> {
+    fn case_fold_with(self, variant: Variant, locale: Locale) -> CaseFold<Once<char>> {
         CaseFold {
             inner: iter::once(self),
             buffer: Buffer::Zero,
@@ -195,22 +195,22 @@ mod test {
 
     #[test]
     fn simple() {
-        assert_eq!("".case_fold_default().collect::<String>(), "");
-        assert_eq!("AaBbCcDdEe".case_fold_default().collect::<String>(), "aabbccddee");
+        assert_eq!("".case_fold().collect::<String>(), "");
+        assert_eq!("AaBbCcDdEe".case_fold().collect::<String>(), "aabbccddee");
     }
 
     #[test]
     fn turkic() {
-        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Full, Locale::NonTurkic).collect::<String>(), "i\u{131}i\u{307}i");
-        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Simple, Locale::NonTurkic).collect::<String>(), "i\u{131}\u{130}i");
-        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Full, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
-        assert_eq!("I\u{131}\u{130}i".case_fold(Variant::Simple, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with(Variant::Full, Locale::NonTurkic).collect::<String>(), "i\u{131}i\u{307}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with(Variant::Simple, Locale::NonTurkic).collect::<String>(), "i\u{131}\u{130}i");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with(Variant::Full, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
+        assert_eq!("I\u{131}\u{130}i".case_fold_with(Variant::Simple, Locale::Turkic).collect::<String>(), "\u{131}\u{131}ii");
     }
 
     #[test]
     fn no_case() {
         for &s in &["西遊記", "((!))", "サーナイト"] {
-            assert_eq!(s.case_fold_default().collect::<String>(), s);
+            assert_eq!(s.case_fold().collect::<String>(), s);
         }
     }
 }
