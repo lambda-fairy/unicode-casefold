@@ -1,5 +1,7 @@
 # unicode-casefold
 
+**This crate is deprecated. Please use [caseless](https://crates.io/crate/caseless) instead.**
+
 Iterators for case folding text. Provides "simple" and "full" algorithms, with Turkic language options on both.
 
 See [this W3C article][1] for how case folding differs from `.to_lowercase()`.
