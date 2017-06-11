@@ -1,6 +1,6 @@
 # unicode-casefold
 
-**This crate is deprecated. Please use [caseless](https://crates.io/crate/caseless) instead.**
+**This crate is deprecated. Please use [caseless](https://crates.io/crates/caseless) instead.**
 
 Iterators for case folding text. Provides "simple" and "full" algorithms, with Turkic language options on both.
 
